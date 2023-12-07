@@ -1,4 +1,5 @@
 import db from "../firestore/config";
+import prapareDocs from "../helpers/prapareDocs";
 const todoRef = db.collection("todos");
 
 export async function getListTodo(sort = "ASC", limit = 0) {
@@ -7,35 +8,29 @@ export async function getListTodo(sort = "ASC", limit = 0) {
     .limit(Number(limit))
     .get();
 
-  return todos.docs.map((doc) => {
-    return { id: doc.id, ...doc.data() };
-  });
+  return prapareDocs(todos.docs);
 }
 
-export async function getAdd(data) {
-  const addTodo = {
+export async function addTodo(data) {
+  const todo = {
     createAt: new Date(),
     ...data,
     completed: false,
   };
 
-  const todo = await todoRef.add(addTodo);
+  const respon = await todoRef.add(todo);
 
-  return { id: todo.id, ...addTodo };
+  return { id: respon.id, ...todo };
 }
 
-export async function updateTodos(todos = []) {
-  const updates = todos.map(async (id) => {
-    const todoDoc = (await todoRef.doc(`${id}`).get()).data();
-
+export async function updateTodos(ids = []) {
+  const update = ids.map(async (id) => {
     return todoRef.doc(`${id}`).update({
-      ...todo,
-      completed: !todoDoc.completed,
+      completed: true,
       updatedAt: new Date(),
     });
   });
-
-  return await Promise.all(updates);
+  return await Promise.all(update);
 }
 
 export async function removeManyTodo(ids = []) {

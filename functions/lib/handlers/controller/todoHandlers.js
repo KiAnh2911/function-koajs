@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.addTodo = addTodo;
+exports.add = add;
 exports.getTodos = getTodos;
 exports.removeMany = removeMany;
 exports.updataMany = updataMany;
@@ -28,11 +28,10 @@ async function getTodos(ctx) {
     };
   }
 }
-async function addTodo(ctx) {
+async function add(ctx) {
   try {
     const postData = ctx.request.body || ctx.req.body;
-    console.log("postData", postData);
-    const data = await (0, _todoRespository.getAdd)(postData);
+    const data = await (0, _todoRespository.addTodo)(postData);
     ctx.status = 201;
     return ctx.body = {
       success: true,

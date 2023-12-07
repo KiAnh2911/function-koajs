@@ -1,6 +1,6 @@
 import {
   getListTodo,
-  getAdd,
+  addTodo,
   removeManyTodo,
   updateTodos,
 } from "../../database/todoRespository";
@@ -24,11 +24,10 @@ export async function getTodos(ctx) {
   }
 }
 
-export async function addTodo(ctx) {
+export async function add(ctx) {
   try {
     const postData = ctx.request.body || ctx.req.body;
-    console.log("postData", postData);
-    const data = await getAdd(postData);
+    const data = await addTodo(postData);
 
     ctx.status = 201;
     return (ctx.body = {

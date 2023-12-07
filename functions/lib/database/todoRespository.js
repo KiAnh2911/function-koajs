@@ -3,44 +3,38 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.getAdd = getAdd;
+exports.addTodo = addTodo;
 exports.getListTodo = getListTodo;
 exports.removeManyTodo = removeManyTodo;
 exports.updateTodos = updateTodos;
 var _config = _interopRequireDefault(require("../firestore/config"));
+var _prapareDocs = _interopRequireDefault(require("../helpers/prapareDocs"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 const todoRef = _config.default.collection("todos");
 async function getListTodo(sort = "ASC", limit = 0) {
   const todos = await todoRef.orderBy("createAt", sort).limit(Number(limit)).get();
-  return todos.docs.map(doc => {
-    return {
-      id: doc.id,
-      ...doc.data()
-    };
-  });
+  return (0, _prapareDocs.default)(todos.docs);
 }
-async function getAdd(data) {
-  const addTodo = {
+async function addTodo(data) {
+  const todo = {
     createAt: new Date(),
     ...data,
     completed: false
   };
-  const todo = await todoRef.add(addTodo);
+  const respon = await todoRef.add(todo);
   return {
-    id: todo.id,
-    ...addTodo
+    id: respon.id,
+    ...todo
   };
 }
-async function updateTodos(todos = []) {
-  const updates = todos.map(async id => {
-    const todoDoc = (await todoRef.doc(`${id}`).get()).data();
+async function updateTodos(ids = []) {
+  const update = ids.map(async id => {
     return todoRef.doc(`${id}`).update({
-      ...todo,
-      completed: !todoDoc.completed,
+      completed: true,
       updatedAt: new Date()
     });
   });
-  return await Promise.all(updates);
+  return await Promise.all(update);
 }
 async function removeManyTodo(ids = []) {
   const todoRemove = ids.map(id => todoRef.doc(String(id)).delete());

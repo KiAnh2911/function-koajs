@@ -16,8 +16,8 @@ const router = new _koaRouter.default({
 });
 
 // router todo
-router.get("/todos", _todoInputMiddleware.default, todosHandler.getTodos);
-router.post("/todo", todosHandler.addTodo);
+router.get("/todos", todosHandler.getTodos);
+router.post("/todo", _todoInputMiddleware.default, todosHandler.add);
 router.patch("/todos", todosHandler.updataMany);
 router.delete("/todos", todosHandler.removeMany);
 var _default = exports.default = router;
