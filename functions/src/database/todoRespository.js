@@ -1,12 +1,20 @@
 import db from "../firestore/config";
 import prapareDocs from "../helpers/prapareDocs";
-const todoRef = db.collection("todos");
 
-export async function getListTodo(sort = "ASC", limit = 0) {
-  const todos = await todoRef
-    .orderBy("createAt", sort)
-    .limit(Number(limit))
-    .get();
+const todoRef = db.collection("todos");
+const batch = db.batch();
+
+export async function getListTodo(sort = "ASC", limit = 10) {
+  let queryTodos = todoRef;
+
+  if (sort) {
+    queryTodos = queryTodos.orderBy("createAt", sort);
+  }
+  if (limit) {
+    queryTodos = queryTodos.limit(Number(limit));
+  }
+
+  const todos = await queryTodos.get();
 
   return prapareDocs(todos.docs);
 }
@@ -24,17 +32,17 @@ export async function addTodo(data) {
 }
 
 export async function updateTodos(ids = []) {
-  const update = ids.map(async (id) => {
-    return todoRef.doc(`${id}`).update({
-      completed: true,
-      updatedAt: new Date(),
-    });
+  ids.map(async (id) => {
+    const update = todoRef.doc(id);
+    batch.update(update, { completed: true, updatedAt: new Date() });
   });
-  return await Promise.all(update);
+
+  return await batch.commit();
 }
 
 export async function removeManyTodo(ids = []) {
   const todoRemove = ids.map((id) => todoRef.doc(String(id)).delete());
+  batch.delete(todoRemove);
 
-  return await Promise.all(todoRemove);
+  return await batch.commit();
 }

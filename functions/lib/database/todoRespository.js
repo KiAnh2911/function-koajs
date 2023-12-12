@@ -11,8 +11,16 @@ var _config = _interopRequireDefault(require("../firestore/config"));
 var _prapareDocs = _interopRequireDefault(require("../helpers/prapareDocs"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 const todoRef = _config.default.collection("todos");
-async function getListTodo(sort = "ASC", limit = 0) {
-  const todos = await todoRef.orderBy("createAt", sort).limit(Number(limit)).get();
+const batch = _config.default.batch();
+async function getListTodo(sort = "ASC", limit = 10) {
+  let queryTodos = todoRef;
+  if (sort) {
+    queryTodos = queryTodos.orderBy("createAt", sort);
+  }
+  if (limit) {
+    queryTodos = queryTodos.limit(Number(limit));
+  }
+  const todos = await queryTodos.get();
   return (0, _prapareDocs.default)(todos.docs);
 }
 async function addTodo(data) {
@@ -28,16 +36,18 @@ async function addTodo(data) {
   };
 }
 async function updateTodos(ids = []) {
-  const update = ids.map(async id => {
-    return todoRef.doc(`${id}`).update({
+  ids.map(async id => {
+    const update = todoRef.doc(id);
+    batch.update(update, {
       completed: true,
       updatedAt: new Date()
     });
   });
-  return await Promise.all(update);
+  return await batch.commit();
 }
 async function removeManyTodo(ids = []) {
   const todoRemove = ids.map(id => todoRef.doc(String(id)).delete());
-  return await Promise.all(todoRemove);
+  batch.delete(todoRemove);
+  return await batch.commit();
 }
 //# sourceMappingURL=todoRespository.js.map
